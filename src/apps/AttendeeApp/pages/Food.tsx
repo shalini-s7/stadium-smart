@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Utensils, Star, Clock, MapPin, Search, ChevronLeft, ShoppingBag, Plus, Minus, CheckCircle, Smartphone, CreditCard, Loader2, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import clsx from 'clsx';
-import { addItem, decrementItem, setDeliveryMode } from '../../../store/cartSlice';
+import { addItem, decrementItem, setDeliveryMode, clearCart } from '../../../store/cartSlice';
 import type { RootState } from '../../../store/store';
 
 // Mock Data
@@ -132,6 +132,7 @@ export default function Food() {
          dispatch(setDeliveryMode(checkoutDeliveryMode));
          setBookingStatus('success');
          setOrderComplete(true);
+         dispatch(clearCart());
          setTimeout(() => {
            setSelectedStall(null);
          }, 4000);
@@ -201,7 +202,7 @@ export default function Food() {
 
       {/* Global Bottom Cart Banner (Floats Globally) */}
       <AnimatePresence>
-        {globalCart.length > 0 && !showGlobalCheckout && !orderComplete && (
+        {globalCart.length > 0 && !showGlobalCheckout && !showCaptcha && !showSwiggyCheckout && !orderComplete && (
           <motion.div initial={{ y: 100 }} animate={{ y: 0 }} exit={{ y: 100 }} className="fixed bottom-0 left-0 right-0 p-4 bg-transparent z-[200]">
             <div className="bg-primary-600 dark:bg-primary-500 text-white p-4 rounded-2xl shadow-2xl flex justify-between items-center pointer-events-auto cursor-pointer active:scale-[0.98] transition-transform w-full md:max-w-md md:mx-auto" onClick={() => setShowGlobalCheckout(true)}>
               <div>

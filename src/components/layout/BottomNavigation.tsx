@@ -1,11 +1,12 @@
 import { NavLink } from 'react-router-dom';
-import { Home, Map, Calendar, Bell } from 'lucide-react';
+import { Home, Map, Calendar, Bell, Utensils } from 'lucide-react';
 import clsx from 'clsx';
 
 export const BottomNavigation = () => {
   const tabs = [
     { to: '/', icon: Home, label: 'Home' },
     { to: '/map', icon: Map, label: 'Heatmap' },
+    { to: '/food', icon: Utensils, label: 'Food' },
     { to: '/events', icon: Calendar, label: 'Events' },
     { to: '/alerts', icon: Bell, label: 'Alerts' },
   ];
