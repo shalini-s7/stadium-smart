@@ -1,10 +1,9 @@
 import { useState, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Utensils, Star, Clock, MapPin, Search, ChevronLeft, ShoppingBag, Plus, Minus, CheckCircle, Navigation, Smartphone, CreditCard, Loader2, X } from 'lucide-react';
+import { Utensils, Star, Clock, MapPin, Search, ChevronLeft, ShoppingBag, Plus, Minus, CheckCircle, Smartphone, CreditCard, Loader2, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import clsx from 'clsx';
-import { addItem, removeItem, decrementItem, setDeliveryMode } from '../../../store/cartSlice';
-import type { CartItem } from '../../../store/cartSlice';
+import { addItem, decrementItem, setDeliveryMode } from '../../../store/cartSlice';
 import type { RootState } from '../../../store/store';
 
 // Mock Data
@@ -76,7 +75,7 @@ export default function Food() {
   const [captchaError, setCaptchaError] = useState(false);
   
   const [orderComplete, setOrderComplete] = useState(false);
-  const [checkoutDeliveryMode, setCheckoutDeliveryMode] = useState<'pickup'|'seat'>('pickup');
+  const [checkoutDeliveryMode] = useState<'pickup'|'seat'>('pickup');
   const [paymentMethod, setPaymentMethod] = useState<'upi'|'card'>('upi');
   const [bookingStatus, setBookingStatus] = useState<'idle'|'processing'|'success'>('idle');
 
@@ -139,9 +138,6 @@ export default function Food() {
      }, 2500);
   };
 
-  const confirmOrder = () => {
-    setShowCaptcha(true);
-  };
 
   return (
     <div className="flex flex-col min-h-screen bg-slate-50 dark:bg-slate-950 pb-24 transition-colors relative">
@@ -388,7 +384,7 @@ export default function Food() {
                      
                      <div className="bg-white dark:bg-slate-950 p-5 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm flex justify-between items-center">
                         <span className="font-medium text-slate-600 dark:text-slate-400">Total Amount Payable</span>
-                        <span className="text-2xl font-black text-slate-900 dark:text-white">₹{cartTotal + (checkoutDeliveryMode === 'seat' ? 50 : 0) + Math.round(cartTotal * 0.05)}</span>
+                        <span className="text-2xl font-black text-slate-900 dark:text-white">₹{globalCartTotal + (checkoutDeliveryMode === 'seat' ? 50 : 0) + Math.round(globalCartTotal * 0.05)}</span>
                      </div>
 
                      <div className="space-y-3">
@@ -443,7 +439,7 @@ export default function Food() {
                        {bookingStatus === 'processing' ? (
                           <><Loader2 className="animate-spin mr-2" size={24}/> Processing Securely...</>
                        ) : (
-                          `Pay ₹${cartTotal + (checkoutDeliveryMode === 'seat' ? 50 : 0) + Math.round(cartTotal * 0.05)}`
+                          `Pay ₹${globalCartTotal + (checkoutDeliveryMode === 'seat' ? 50 : 0) + Math.round(globalCartTotal * 0.05)}`
                        )}
                      </button>
                   </div>
