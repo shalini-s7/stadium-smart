@@ -15,6 +15,7 @@ export interface UserProfile {
   avatar: string;
   favoriteTeam: string;
   diet: string;
+  followingIds: string[];
 }
 
 interface UserState {
@@ -53,9 +54,19 @@ const userSlice = createSlice({
     },
     unregisterEvent: (state, action: PayloadAction<string>) => {
       state.registeredEvents = state.registeredEvents.filter((e) => e.id !== action.payload);
+    },
+    followUser: (state, action: PayloadAction<string>) => {
+      if (state.profile && !state.profile.followingIds.includes(action.payload)) {
+        state.profile.followingIds.push(action.payload);
+      }
+    },
+    unfollowUser: (state, action: PayloadAction<string>) => {
+      if (state.profile) {
+        state.profile.followingIds = state.profile.followingIds.filter(id => id !== action.payload);
+      }
     }
   },
 });
 
-export const { login, logout, updateProfile, registerEvent, unregisterEvent } = userSlice.actions;
+export const { login, logout, updateProfile, registerEvent, unregisterEvent, followUser, unfollowUser } = userSlice.actions;
 export default userSlice.reducer;

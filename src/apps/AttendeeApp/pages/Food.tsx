@@ -1,6 +1,6 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Utensils, Star, Clock, MapPin, Search, ChevronLeft, ShoppingBag, Plus, Minus, CheckCircle, Smartphone, CreditCard, Loader2, X } from 'lucide-react';
+import { Utensils, Star, Clock, MapPin, Search, ChevronLeft, ShoppingBag, Plus, Minus, CheckCircle, Smartphone, CreditCard, Loader2, X, Bike, Map, Navigation, Timer, Info } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import clsx from 'clsx';
 import { addItem, decrementItem, setDeliveryMode, clearCart } from '../../../store/cartSlice';
@@ -75,11 +75,32 @@ export default function Food() {
   const [captchaError, setCaptchaError] = useState(false);
   
   const [orderComplete, setOrderComplete] = useState(false);
-  const [checkoutDeliveryMode] = useState<'pickup'|'seat'>('pickup');
+  const [checkoutDeliveryMode, setCheckoutDeliveryMode] = useState<'pickup'|'seat'>('pickup');
   const [paymentMethod, setPaymentMethod] = useState<'upi'|'card'>('upi');
   const [bookingStatus, setBookingStatus] = useState<'idle'|'processing'|'success'>('idle');
+  const [showTracking, setShowTracking] = useState(false);
+  const [trackProgress, setTrackProgress] = useState(0);
 
   const globalCartTotal = globalCart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const deliveryFee = checkoutDeliveryMode === 'seat' ? 45 : 0;
+  const platformFee = Math.round(globalCartTotal * 0.03);
+  const totalAmount = globalCartTotal + deliveryFee + platformFee;
+
+  useEffect(() => {
+    let interval: any;
+    if (showTracking) {
+      interval = setInterval(() => {
+        setTrackProgress(prev => {
+          if (prev >= 100) {
+            clearInterval(interval);
+            return 100;
+          }
+          return prev + 0.5;
+        });
+      }, 100);
+    }
+    return () => clearInterval(interval);
+  }, [showTracking]);
 
   // Filter stalls
   const filteredStalls = useMemo(() => {
@@ -227,8 +248,23 @@ export default function Food() {
                 </button>
                 <h2 className="ml-4 font-bold dark:text-white text-lg">Global Cart</h2>
               </div>
-              
               <div className="flex-1 overflow-y-auto bg-slate-50 dark:bg-slate-900/50 p-6 space-y-6">
+                 {/* Delivery Options Selector */}
+                 <div className="bg-white dark:bg-slate-900 p-2 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm flex">
+                   <button 
+                     onClick={() => setCheckoutDeliveryMode('pickup')}
+                     className={clsx("flex-1 py-3 px-4 rounded-xl font-bold text-sm transition-all flex items-center justify-center space-x-2", checkoutDeliveryMode === 'pickup' ? "bg-primary-500 text-white shadow-lg" : "text-slate-500 hover:bg-slate-50")}
+                   >
+                     <ShoppingBag size={18} /> <span>Pickup</span>
+                   </button>
+                   <button 
+                     onClick={() => setCheckoutDeliveryMode('seat')}
+                     className={clsx("flex-1 py-3 px-4 rounded-xl font-bold text-sm transition-all flex items-center justify-center space-x-2", checkoutDeliveryMode === 'seat' ? "bg-primary-500 text-white shadow-lg" : "text-slate-500 hover:bg-slate-50")}
+                   >
+                     <Bike size={18} /> <span>At My Seat</span>
+                   </button>
+                 </div>
+
                  <div className="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm">
                    <h3 className="font-bold text-sm tracking-widest uppercase text-slate-500 mb-4">Your Unified Order</h3>
                    {globalCart.map((item, i) => (
@@ -243,20 +279,28 @@ export default function Food() {
                  </div>
 
                  <div className="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm space-y-3 text-sm text-slate-600 dark:text-slate-400">
-                   <div className="flex justify-between">
+                   <div className="flex justify-between font-medium">
                      <span>Item Total</span>
-                     <span className="font-medium text-slate-900 dark:text-white">₹{globalCartTotal}</span>
+                     <span className="text-slate-900 dark:text-white">₹{globalCartTotal}</span>
+                   </div>
+                   <div className="flex justify-between items-center">
+                     <span className="flex items-center">Delivery Fee <Info size={14} className="ml-1 text-slate-400" /></span>
+                     <span className={clsx("font-bold", deliveryFee === 0 ? "text-green-500" : "text-slate-900 dark:text-white")}>{deliveryFee === 0 ? 'FREE' : `₹${deliveryFee}`}</span>
+                   </div>
+                   <div className="flex justify-between">
+                     <span>Taxes & Platform Fee</span>
+                     <span className="text-slate-900 dark:text-white">₹{platformFee}</span>
                    </div>
                    <div className="border-t border-slate-100 dark:border-slate-800 pt-3 flex justify-between font-extrabold text-lg text-slate-900 dark:text-white">
                      <span>To Pay</span>
-                     <span>₹{globalCartTotal}</span>
+                     <span>₹{totalAmount}</span>
                    </div>
                  </div>
               </div>
 
               <div className="p-6 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 flex space-x-4">
                  <button onClick={() => { setShowGlobalCheckout(false); setShowCaptcha(true); }} className="w-full py-4 bg-primary-500 hover:bg-primary-600 text-white text-lg rounded-xl font-extrabold active:scale-95 transition-transform shadow-xl shadow-primary-500/20">
-                   Proceed to Pay ₹{globalCartTotal}
+                   Proceed to Pay ₹{totalAmount}
                  </button>
               </div>
            </motion.div>
@@ -333,8 +377,6 @@ export default function Food() {
                <div className="h-24" />
             </div>
 
-
-
             {/* CAPTCHA Modal Overlay */}
             <AnimatePresence>
               {showCaptcha && (
@@ -385,7 +427,7 @@ export default function Food() {
                      
                      <div className="bg-white dark:bg-slate-950 p-5 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm flex justify-between items-center">
                         <span className="font-medium text-slate-600 dark:text-slate-400">Total Amount Payable</span>
-                        <span className="text-2xl font-black text-slate-900 dark:text-white">₹{globalCartTotal + (checkoutDeliveryMode === 'seat' ? 50 : 0) + Math.round(globalCartTotal * 0.05)}</span>
+                        <span className="text-2xl font-black text-slate-900 dark:text-white">₹{totalAmount}</span>
                      </div>
 
                      <div className="space-y-3">
@@ -440,7 +482,7 @@ export default function Food() {
                        {bookingStatus === 'processing' ? (
                           <><Loader2 className="animate-spin mr-2" size={24}/> Processing Securely...</>
                        ) : (
-                          `Pay ₹${globalCartTotal + (checkoutDeliveryMode === 'seat' ? 50 : 0) + Math.round(globalCartTotal * 0.05)}`
+                          `Pay ₹${totalAmount}`
                        )}
                      </button>
                   </div>
@@ -468,8 +510,118 @@ export default function Food() {
                     </p>
                   </div>
 
-                  <div className="animate-pulse flex items-center text-sm font-bold text-primary-500">
-                    Routing you back...
+                   <div className="animate-pulse flex flex-col items-center space-y-4">
+                     <div className="text-sm font-bold text-primary-500">Routing you back...</div>
+                     {checkoutDeliveryMode === 'seat' && (
+                        <button 
+                          onClick={() => setShowTracking(true)}
+                          className="px-8 py-4 bg-primary-500 text-white rounded-2xl font-black text-lg shadow-xl shadow-primary-500/30 flex items-center space-x-2"
+                        >
+                          <Navigation size={20} /> <span>Track Live Order</span>
+                        </button>
+                     )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Live Tracking Modal */}
+            <AnimatePresence>
+              {showTracking && (
+                <motion.div initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} className="absolute inset-0 bg-white dark:bg-slate-950 z-[200] flex flex-col">
+                  <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-slate-950 z-20">
+                    <div className="flex items-center">
+                      <button onClick={() => setShowTracking(false)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full text-slate-500">
+                        <ChevronLeft size={24} />
+                      </button>
+                      <div className="ml-2">
+                         <h2 className="font-extrabold dark:text-white text-lg">Live Tracking</h2>
+                         <p className="text-[10px] font-black tracking-widest text-primary-500 uppercase">Arriving at Seat A12</p>
+                      </div>
+                    </div>
+                    <div className="bg-primary-50 dark:bg-primary-900/20 px-3 py-1 rounded-full flex items-center text-primary-600 dark:text-primary-400 font-black text-xs">
+                       <Timer size={14} className="mr-1.5" /> {Math.max(1, Math.round(12 - (trackProgress / 8)))} Mins Away
+                    </div>
+                  </div>
+
+                  <div className="flex-1 overflow-hidden relative bg-slate-100 dark:bg-slate-900 p-8 flex flex-col">
+                     {/* Mock Live Map Rendering */}
+                     <div className="relative w-full aspect-square bg-white dark:bg-slate-800 rounded-full shadow-2xl border-8 border-slate-200 dark:border-slate-700 flex items-center justify-center overflow-hidden">
+                        <Map className="absolute inset-0 w-full h-full text-slate-100 dark:text-slate-700 opacity-20" />
+                        
+                        {/* Stadium SVG Overlay */}
+                        <svg viewBox="0 0 200 200" className="absolute inset-0 w-full h-full p-10 opacity-40">
+                          <circle cx="100" cy="100" r="90" fill="none" stroke="currentColor" strokeWidth="2" className="text-slate-300 dark:text-slate-600" />
+                          <rect x="70" y="70" width="60" height="60" rx="10" fill="none" stroke="currentColor" strokeWidth="1" className="text-slate-300 dark:text-slate-600" />
+                        </svg>
+
+                        {/* Delivery Path */}
+                        <svg viewBox="0 0 200 200" className="absolute inset-0 w-full h-full p-10 overflow-visible">
+                           <motion.path 
+                              d="M 20,20 Q 100,50 180,180" 
+                              fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray="4 4"
+                              className="text-primary-500/30"
+                           />
+                           {/* User Location */}
+                           <circle cx="180" cy="180" r="6" className="fill-emerald-500" />
+                           <motion.circle 
+                              cx="180" cy="180" r="10" 
+                              animate={{ scale: [1, 1.5, 1], opacity: [1, 0, 1] }}
+                              transition={{ duration: 2, repeat: Infinity }}
+                              className="stroke-emerald-500 fill-none" strokeWidth="2"
+                           />
+
+                           {/* Delivery Agent Rider */}
+                           <motion.g
+                             style={{
+                               offsetPath: "path('M 20,20 Q 100,50 180,180')",
+                               offsetDistance: `${trackProgress}%`
+                             }}
+                           >
+                              <circle r="12" className="fill-primary-500 shadow-xl" />
+                              <foreignObject x="-10" y="-10" width="20" height="20">
+                                <Bike size={16} className="text-white" />
+                              </foreignObject>
+                           </motion.g>
+                        </svg>
+                     </div>
+
+                     <div className="mt-auto bg-white dark:bg-slate-800 p-6 rounded-[2.5rem] shadow-xl border border-slate-200/50 dark:border-slate-700/50">
+                        <div className="flex items-center justify-between mb-6">
+                           <div className="flex items-center space-x-4">
+                              <div className="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex items-center justify-center p-1">
+                                 <img src="https://api.dicebear.com/7.x/notionists/svg?seed=Rider" className="w-12 h-12" alt="Rider" />
+                              </div>
+                              <div>
+                                 <p className="text-sm font-black text-slate-900 dark:text-white">Vikram K.</p>
+                                 <p className="text-[10px] font-bold text-slate-500 uppercase flex items-center"><Star size={10} className="fill-amber-400 text-amber-400 mr-1" /> 4.9 • Delivery Partner</p>
+                              </div>
+                           </div>
+                           <button className="bg-primary-500 text-white p-3 rounded-2xl shadow-lg shadow-primary-500/20 active:scale-95 transition-all">
+                              <Smartphone size={24} />
+                           </button>
+                        </div>
+
+                        <div className="space-y-4">
+                           <div className="flex items-start space-x-3">
+                              <div className="w-2 h-12 flex flex-col items-center">
+                                 <div className="w-2 h-2 rounded-full bg-primary-500" />
+                                 <div className="w-0.5 flex-1 bg-slate-200 dark:bg-slate-700" />
+                                 <div className="w-2 h-2 rounded-full bg-slate-300 dark:bg-slate-600" />
+                              </div>
+                              <div className="flex-1 space-y-4 pt-0.5">
+                                 <div>
+                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-tighter">Current Status</p>
+                                    <p className="font-extrabold text-sm text-slate-900 dark:text-white">{trackProgress < 30 ? "Picking up your order..." : trackProgress < 80 ? "On the way to your seat!" : "Arriving at your location..."}</p>
+                                 </div>
+                                 <div className="flex items-center justify-between">
+                                    <p className="text-sm font-bold text-slate-800 dark:text-slate-200">Arriving At</p>
+                                    <p className="text-sm font-black text-primary-500">Zone A, Row 12, Seat 4</p>
+                                 </div>
+                              </div>
+                           </div>
+                        </div>
+                     </div>
                   </div>
                 </motion.div>
               )}

@@ -3,7 +3,8 @@ import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { login } from '../../store/userSlice';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Hexagon, Mail, Lock, User } from 'lucide-react';
+import { Hexagon, Mail, Lock, User, Cloud } from 'lucide-react';
+import { storageService } from '../../services/storageService';
 
 export default function Login() {
   const dispatch = useDispatch();
@@ -11,6 +12,7 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const [showGoogleModal, setShowGoogleModal] = useState(false);
+  const [cloudSyncing, setCloudSyncing] = useState(false);
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -19,7 +21,7 @@ export default function Login() {
   const handleAuth = (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password || (isSignUp && !name)) return;
-    performLogin(name || email.split('@')[0]);
+    performLogin(name || email.split('@')[0], 'email');
   };
 
   const handleGoogleClick = () => {
@@ -28,20 +30,31 @@ export default function Login() {
 
   const handleGoogleAccountSelect = (userName: string) => {
     setShowGoogleModal(false);
-    performLogin(userName);
+    performLogin(userName, 'google');
   };
 
-  const performLogin = (userName: string) => {
+  const performLogin = async (userName: string, method: 'email' | 'google') => {
     setIsLoading(true);
+    
+    // Simulate Cloud Storage sync for Google login
+    if (method === 'google') {
+      setCloudSyncing(true);
+      const googleId = `google_${userName.toLowerCase().replace(/\s+/g, '_')}`;
+      await storageService.initializeBucket(googleId);
+      await new Promise(r => setTimeout(r, 1000));
+      setCloudSyncing(false);
+    }
+
     setTimeout(() => {
       dispatch(login({
         name: userName,
         avatar: `https://api.dicebear.com/7.x/notionists/svg?seed=${userName}`,
         favoriteTeam: 'Home Team',
-        diet: 'None'
+        diet: 'None',
+        followingIds: []
       }));
       navigate('/', { replace: true });
-    }, 1200);
+    }, 800);
   };
 
   return (
@@ -131,13 +144,34 @@ export default function Login() {
           <span>Continue with Google</span>
         </button>
 
-        <p className="mt-6 text-center text-sm text-slate-500 dark:text-slate-400">
-           {isSignUp ? "Already have an account?" : "Don't have an account?"}
-           <button onClick={() => setIsSignUp(!isSignUp)} className="ml-1 text-primary-500 font-bold hover:underline">
-             {isSignUp ? "Sign In" : "Sign Up"}
-           </button>
-        </p>
+        <div className="flex justify-center mt-6">
+          <button 
+            type="button"
+            onClick={() => setIsSignUp(!isSignUp)}
+            className="text-xs font-bold text-slate-500 hover:text-primary-500 transition-colors uppercase tracking-widest"
+          >
+            {isSignUp ? "Already have an account? Sign In" : "Don't have an account? Sign Up"}
+          </button>
+        </div>
 
+        <AnimatePresence>
+          {cloudSyncing && (
+            <motion.div 
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="absolute inset-0 z-[50] bg-white/90 dark:bg-slate-900/90 backdrop-blur-md rounded-[40px] flex flex-col items-center justify-center p-8 text-center"
+            >
+              <div className="relative mb-6">
+                <Cloud size={48} className="text-primary-500 animate-pulse" />
+                <motion.div 
+                  animate={{ rotate: 360 }} transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                  className="absolute inset-0 border-2 border-t-primary-500 border-r-transparent border-b-transparent border-l-transparent rounded-full"
+                />
+              </div>
+              <h3 className="font-extrabold text-slate-900 dark:text-white mb-2">Syncing Cloud Bucket</h3>
+              <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Attaching your secure stadium storage via Google Cloud...</p>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.div>
 
       {/* Realistic Google Mock Modal */}
@@ -189,5 +223,5 @@ export default function Login() {
       </AnimatePresence>
 
     </div>
-  )
+  );
 }

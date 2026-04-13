@@ -1,11 +1,12 @@
 import { NavLink } from 'react-router-dom';
-import { Home, Map, Calendar, Bell, Settings as SettingsIcon, Ticket, Utensils } from 'lucide-react';
+import { Home, Map, Calendar, Bell, Settings as SettingsIcon, Ticket, Utensils, Users } from 'lucide-react';
 import clsx from 'clsx';
 
 export const Sidebar = () => {
   const tabs = [
     { to: '/', icon: Home, label: 'Dashboard' },
     { to: '/map', icon: Map, label: 'Live Heatmap' },
+    { to: '/network', icon: Users, label: 'Community' },
     { to: '/events', icon: Calendar, label: 'Events' },
     { to: '/my-seat', icon: Ticket, label: 'My Seat' },
     { to: '/food', icon: Utensils, label: 'Food' },

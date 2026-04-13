@@ -1,6 +1,6 @@
 import { useSelector } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import type { RootState } from '../../../store/store';
 import { AlertTriangle, CheckCircle, X, Navigation } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -14,6 +14,23 @@ export default function CrowdMap() {
   const handleZoneClick = (zoneId: string) => {
     setSelectedZone(zones[zoneId]);
   };
+
+  const stadiumBase = useMemo(() => (
+    <g className="stadium-base">
+       {/* Stadium Outline */}
+       <circle cx="200" cy="200" r="180" fill="none" stroke="currentColor" strokeWidth="4" className="text-slate-200 dark:text-slate-700" />
+       <circle cx="200" cy="200" r="90" fill="none" stroke="currentColor" strokeWidth="2" className="text-slate-300 dark:text-slate-600 border-dashed" />
+       
+       {/* Field markers */}
+       <rect x="140" y="140" width="120" height="120" rx="20" fill="none" stroke="currentColor" strokeWidth="2" className="text-slate-300 dark:text-slate-600 pointer-events-none" />
+       <text x="200" y="200" textAnchor="middle" dominantBaseline="middle" fill="currentColor" className="text-slate-400 dark:text-slate-500 font-bold text-xl tracking-widest pointer-events-none uppercase">Pitch</text>
+       
+       {/* Labels */}
+       <text x="70" y="70" fill="currentColor" className="text-slate-800 dark:text-slate-200 font-black text-2xl pointer-events-none">A</text>
+       <text x="330" y="70" fill="currentColor" className="text-slate-800 dark:text-slate-200 font-black text-2xl pointer-events-none">B</text>
+       <text x="200" y="350" fill="currentColor" className="text-slate-800 dark:text-slate-200 font-black text-2xl pointer-events-none">C</text>
+    </g>
+  ), []);
 
   const getStopColor = (status: string) => {
     switch (status) {
@@ -57,26 +74,43 @@ export default function CrowdMap() {
               ))}
             </defs>
 
-            {/* Stadium Outline */}
-            <circle cx="200" cy="200" r="180" fill="none" stroke="currentColor" strokeWidth="4" className="text-slate-200 dark:text-slate-700" />
-            <circle cx="200" cy="200" r="90" fill="none" stroke="currentColor" strokeWidth="2" className="text-slate-300 dark:text-slate-600 border-dashed" />
-            
-            {/* Zones Heat Bubbles (Now Interactive) */}
-            <g className="transition-all duration-1000 opacity-80 cursor-pointer pointer-events-auto">
-              <motion.circle onClick={() => handleZoneClick('z1')} className="hover:opacity-100" animate={{ scale: [1, 1.05, 1], opacity: [0.6, 0.8, 0.6] }} transition={{ duration: 3, repeat: Infinity }} cx="120" cy="120" r="80" fill="url(#grad-z1)" />
-              <motion.circle onClick={() => handleZoneClick('z2')} className="hover:opacity-100" animate={{ scale: [1, 1.1, 1], opacity: [0.6, 0.8, 0.6] }} transition={{ duration: 4, repeat: Infinity }} cx="280" cy="120" r="80" fill="url(#grad-z2)" />
-              <motion.circle onClick={() => handleZoneClick('z3')} className="hover:opacity-100" animate={{ scale: [1, 1.05, 1], opacity: [0.6, 0.8, 0.6] }} transition={{ duration: 3.5, repeat: Infinity }} cx="200" cy="280" r="100" fill="url(#grad-z3)" />
-              <motion.circle onClick={() => handleZoneClick('z4')} className="hover:opacity-100" animate={{ scale: [1, 1.15, 1], opacity: [0.6, 0.8, 0.6] }} transition={{ duration: 2.5, repeat: Infinity }} cx="100" cy="240" r="70" fill="url(#grad-z4)" />
-            </g>
+            {stadiumBase}
 
-            {/* Field markers */}
-            <rect x="140" y="140" width="120" height="120" rx="20" fill="none" stroke="currentColor" strokeWidth="2" className="text-slate-300 dark:text-slate-600 pointer-events-none" />
-            <text x="200" y="200" textAnchor="middle" dominantBaseline="middle" fill="currentColor" className="text-slate-400 dark:text-slate-500 font-bold text-xl tracking-widest pointer-events-none">FIELD</text>
-            
-            {/* Labels */}
-            <text x="70" y="70" fill="currentColor" className="text-slate-800 dark:text-slate-200 font-black text-2xl pointer-events-none">A</text>
-            <text x="330" y="70" fill="currentColor" className="text-slate-800 dark:text-slate-200 font-black text-2xl pointer-events-none">B</text>
-            <text x="200" y="350" fill="currentColor" className="text-slate-800 dark:text-slate-200 font-black text-2xl pointer-events-none">C</text>
+            {/* Zones Heat Bubbles (Optimized with smoother transitions) */}
+            <g className="transition-all duration-1000 opacity-80 cursor-pointer pointer-events-auto">
+              <motion.circle 
+                onClick={() => handleZoneClick('z1')} 
+                whileHover={{ scale: 1.1, opacity: 1 }}
+                animate={{ scale: [1, 1.05, 1], opacity: [0.6, 0.8, 0.6] }} 
+                transition={{ duration: 3, repeat: Infinity }} 
+                cx="120" cy="120" r="80" 
+                fill="url(#grad-z1)" 
+              />
+              <motion.circle 
+                onClick={() => handleZoneClick('z2')} 
+                whileHover={{ scale: 1.1, opacity: 1 }}
+                animate={{ scale: [1, 1.1, 1], opacity: [0.6, 0.8, 0.6] }} 
+                transition={{ duration: 4, repeat: Infinity }} 
+                cx="280" cy="120" r="80" 
+                fill="url(#grad-z2)" 
+              />
+              <motion.circle 
+                onClick={() => handleZoneClick('z3')} 
+                whileHover={{ scale: 1.1, opacity: 1 }}
+                animate={{ scale: [1, 1.05, 1], opacity: [0.6, 0.8, 0.6] }} 
+                transition={{ duration: 3.5, repeat: Infinity }} 
+                cx="200" cy="280" r="100" 
+                fill="url(#grad-z3)" 
+              />
+              <motion.circle 
+                onClick={() => handleZoneClick('z4')} 
+                whileHover={{ scale: 1.1, opacity: 1 }}
+                animate={{ scale: [1, 1.15, 1], opacity: [0.6, 0.8, 0.6] }} 
+                transition={{ duration: 2.5, repeat: Infinity }} 
+                cx="100" cy="240" r="70" 
+                fill="url(#grad-z4)" 
+              />
+            </g>
           </svg>
 
 

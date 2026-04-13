@@ -19,6 +19,7 @@ const Alerts = React.lazy(() => import('./apps/AttendeeApp/pages/Alerts'));
 const MySeat = React.lazy(() => import('./apps/AttendeeApp/pages/MySeat'));
 const Food = React.lazy(() => import('./apps/AttendeeApp/pages/Food'));
 const Settings = React.lazy(() => import('./apps/AttendeeApp/pages/Settings'));
+const Network = React.lazy(() => import('./apps/AttendeeApp/pages/Network'));
 
 function App() {
   useMockFirestore();
@@ -54,6 +55,7 @@ function App() {
                   <Route path="/" element={<Home />} />
                   <Route path="/map" element={<CrowdMap />} />
               <Route path="/events" element={<UpcomingEvents />} />
+              <Route path="/network" element={<Network />} />
               <Route path="/my-seat" element={<MySeat />} />
               <Route path="/food" element={<Food />} />
               <Route path="/settings" element={<Settings />} />

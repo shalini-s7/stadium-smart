@@ -1,7 +1,7 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import type { RootState } from '../../../store/store';
 import { CrowdMeter } from '../../../components/ui/CrowdMeter';
 import { AiTipCard } from '../../../components/ui/AiTipCard';
@@ -22,12 +22,27 @@ export default function Home() {
     return "Crowds are normal. Grab some food at Food Court North before the rush begins!";
   }, [globalDensity]);
 
-  const quickActions = [
+const quickActions = [
     { icon: Ticket, label: 'My Seat', color: 'bg-gradient-to-br from-blue-400 to-indigo-500 text-white shadow-blue-500/30', to: '/my-seat' },
     { icon: Utensils, label: 'Food Near Me', color: 'bg-gradient-to-br from-orange-400 to-red-500 text-white shadow-orange-500/30', to: '/food' },
     { icon: Calendar, label: 'Events', color: 'bg-gradient-to-br from-teal-400 to-emerald-500 text-white shadow-teal-500/30', to: '/events' },
     { icon: BellRing, label: 'Alerts', color: 'bg-gradient-to-br from-purple-400 to-fuchsia-500 text-white shadow-purple-500/30', to: '/alerts' },
   ];
+
+  const UPCOMING_EVENTS = [
+    { id: 1, title: 'Finals: IND vs AUS', time: 'Starting in 2h', tag: 'High Voltage', color: 'from-red-500 to-orange-500' },
+    { id: 2, title: 'Music Fest: Rock On', time: 'Tomorrow, 6 PM', tag: 'Trending', color: 'from-purple-500 to-blue-500' },
+    { id: 3, title: 'Local League Derby', time: 'Oct 28, 4 PM', tag: 'Sold Out', color: 'from-emerald-500 to-teal-500' },
+  ];
+
+  const [eventIndex, setEventIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setEventIndex((prev) => (prev + 1) % UPCOMING_EVENTS.length);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, []);
 
   return (
     <div className="flex flex-col min-h-screen pb-24 transition-colors">
@@ -62,6 +77,41 @@ export default function Home() {
              <p className="text-lg font-black text-white relative z-10">{liveMatchContext.teams.join(' vs ')}</p>
              <p className="text-sm font-medium text-slate-200 mt-1 relative z-10">Score: <span className="font-bold text-primary-300">{liveMatchContext.currentScore}</span></p>
           </motion.div>
+
+          {/* New Sliding Events Section */}
+          <Link to="/events" className="mt-6 w-full max-w-sm relative h-16 overflow-hidden rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md group cursor-pointer">
+             <AnimatePresence mode="wait">
+               <motion.div 
+                 key={eventIndex}
+                 initial={{ y: 50, opacity: 0 }}
+                 animate={{ y: 0, opacity: 1 }}
+                 exit={{ y: -50, opacity: 0 }}
+                 transition={{ type: "spring", damping: 20, stiffness: 120 }}
+                 className="absolute inset-0 px-4 flex items-center justify-between"
+               >
+                 <div className="flex items-center space-x-3">
+                    <div className={clsx("w-10 h-10 rounded-xl bg-gradient-to-br flex items-center justify-center shadow-lg", UPCOMING_EVENTS[eventIndex].color)}>
+                       <Calendar size={18} className="text-white" />
+                    </div>
+                    <div className="text-left">
+                       <p className="text-xs font-bold text-primary-300 uppercase tracking-widest">{UPCOMING_EVENTS[eventIndex].tag}</p>
+                       <p className="font-extrabold text-white text-sm line-clamp-1">{UPCOMING_EVENTS[eventIndex].title}</p>
+                    </div>
+                 </div>
+                 <div className="text-right">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase">Happening</p>
+                    <p className="text-xs font-bold text-white whitespace-nowrap">{UPCOMING_EVENTS[eventIndex].time}</p>
+                 </div>
+               </motion.div>
+             </AnimatePresence>
+             <div className="absolute bottom-0 left-0 h-0.5 bg-primary-500/30 w-full">
+                <motion.div 
+                  key={`progress-${eventIndex}`}
+                  initial={{ width: 0 }} animate={{ width: '100%' }} transition={{ duration: 4, ease: "linear" }}
+                  className="h-full bg-primary-500 shadow-[0_0_10px_rgba(14,165,233,0.5)]"
+                />
+             </div>
+          </Link>
         </div>
       </div>
 
